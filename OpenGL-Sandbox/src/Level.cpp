@@ -19,6 +19,10 @@ void Level::Init()
 
 void Level::OnUpdate(Timestep ts)
 {
+	const auto& playerPos = m_Player.GetPosition();
+	if (playerPos.x > (std::max(m_FloorX1, m_FloorX2) + 1) * CAM_WIDTH)
+		m_FloorX1 > m_FloorX2 ? m_FloorX2 += 4 : m_FloorX1 += 4;
+
 	if (m_GameOver)
 	{
 		if (m_Player.GetPosition().y > -CAM_HEIGHT + 2 * FLOOR_HEIGHT)
@@ -29,10 +33,6 @@ void Level::OnUpdate(Timestep ts)
 	}
 
 	m_Player.OnUpdate(ts);
-
-	const auto& playerPos = m_Player.GetPosition();
-	if (playerPos.x > (std::max(m_FloorX1, m_FloorX2) + 1) * CAM_WIDTH)
-		m_FloorX1 > m_FloorX2 ? m_FloorX2 += 4 : m_FloorX1 += 4;
 
 	if (CollisionTest())
 	{
@@ -110,6 +110,9 @@ void Level::CreatePillar(int index, float offset)
 bool Level::CollisionTest()
 {
 	if (m_Player.GetPosition().y < -CAM_HEIGHT + 2 * FLOOR_HEIGHT)
+		return true;
+
+	if (m_Player.GetPosition().y > CAM_HEIGHT && m_Player.GetPosition().x > m_Pillars[0].TopPosition.x)
 		return true;
 
 	glm::vec2 pos = { m_Player.GetPosition().x + 0.1f, m_Player.GetPosition().y + 0.1f };

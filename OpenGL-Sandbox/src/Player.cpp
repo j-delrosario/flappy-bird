@@ -33,7 +33,7 @@ void Player::OnUpdate(Timestep ts)
 
 	if (m_Velocity.y > -m_Lift)
 		m_Velocity.y -= m_Gravity;
-	LOG_INFO(m_Velocity.y);
+
 	m_Position += m_Velocity * (float)ts;
 }
 
@@ -56,4 +56,12 @@ void Player::Reset()
 void Player::Kill()
 {
 	m_Velocity.y = -m_Lift;
+}
+
+uint32_t Player::GetScore()
+{
+	uint32_t score = (uint32_t)(m_Position.x + 10.0f) / 10.0f;
+	if (score > m_HighScore)
+		m_HighScore = score;
+	return score;
 }

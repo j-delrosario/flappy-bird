@@ -19,6 +19,7 @@ namespace GLCore::RendererAPI {
 		glm::vec4 Color;
 		glm::vec2 TexCoords;
 		float TexIndex;
+		glm::mat4 Transform;
 	};
 
 	struct RendererData
@@ -65,6 +66,18 @@ namespace GLCore::RendererAPI {
 
 		glEnableVertexArrayAttrib(s_Data.QuadVA, 3);
 		glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, TexIndex));
+
+		glEnableVertexArrayAttrib(s_Data.QuadVA, 4);
+		glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, Transform));
+
+		glEnableVertexArrayAttrib(s_Data.QuadVA, 5);
+		glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)(offsetof(Vertex, Transform) + 16));
+
+		glEnableVertexArrayAttrib(s_Data.QuadVA, 6);
+		glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)(offsetof(Vertex, Transform) + 32));
+
+		glEnableVertexArrayAttrib(s_Data.QuadVA, 7);
+		glVertexAttribPointer(7, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)(offsetof(Vertex, Transform) + 48));
 
 		uint32_t indices[MaxIndexCount];
 		uint32_t offset = 0;
@@ -147,99 +160,95 @@ namespace GLCore::RendererAPI {
 		s_Data.TextureSlotIndex = 1;
 	}
 
-	void Renderer::DrawQuad(const glm::vec2& position, const glm::vec2& size, const glm::vec4& color)
+	void Renderer::IfFullFlushBatch()
 	{
 		if (s_Data.IndexCount >= MaxIndexCount) {
 			EndBatch();
 			Flush();
 			BeginBatch();
 		}
+	}
+
+	void Renderer::UpdateQuadBuffer(const glm::vec3& position, const glm::vec4& color, const glm::vec2& texCoords, float textureIndex)
+	{
+		s_Data.QuadBufferPtr->Position = position;
+		s_Data.QuadBufferPtr->Color = color;
+		s_Data.QuadBufferPtr->TexCoords = texCoords;
+		s_Data.QuadBufferPtr->TexIndex = textureIndex;
+		s_Data.QuadBufferPtr->Transform = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
+		s_Data.QuadBufferPtr++;
+	}
+
+	void Renderer::UpdateQuadBuffer(const glm::vec3& position, const glm::vec4& color, const glm::vec2& texCoords, float textureIndex, const glm::mat4& transform)
+	{
+		s_Data.QuadBufferPtr->Position = position;
+		s_Data.QuadBufferPtr->Color = color;
+		s_Data.QuadBufferPtr->TexCoords = texCoords;
+		s_Data.QuadBufferPtr->TexIndex = textureIndex;
+		s_Data.QuadBufferPtr->Transform = transform;
+		s_Data.QuadBufferPtr++;
+	}
+
+	void Renderer::DrawQuad(const glm::vec2& position, const glm::vec2& size, const glm::vec4& color)
+	{
+		IfFullFlushBatch();
 
 		float textureIndex = 0.0f;
 
-		s_Data.QuadBufferPtr->Position = { position.x, position.y, 0.0f };
-		s_Data.QuadBufferPtr->Color = color;
-		s_Data.QuadBufferPtr->TexCoords = { 0.0f, 0.0f };
-		s_Data.QuadBufferPtr->TexIndex = textureIndex;
-		s_Data.QuadBufferPtr++;
-
-		s_Data.QuadBufferPtr->Position = { position.x + size.x, position.y, 0.0f };
-		s_Data.QuadBufferPtr->Color = color;
-		s_Data.QuadBufferPtr->TexCoords = { 1.0f, 0.0f };
-		s_Data.QuadBufferPtr->TexIndex = textureIndex;
-		s_Data.QuadBufferPtr++;
-
-		s_Data.QuadBufferPtr->Position = { position.x + size.x, position.y + size.y, 0.0f };
-		s_Data.QuadBufferPtr->Color = color;
-		s_Data.QuadBufferPtr->TexCoords = { 1.0f, 1.0f };
-		s_Data.QuadBufferPtr->TexIndex = textureIndex;
-		s_Data.QuadBufferPtr++;
-
-		s_Data.QuadBufferPtr->Position = { position.x, position.y + size.y, 0.0f };
-		s_Data.QuadBufferPtr->Color = color;
-		s_Data.QuadBufferPtr->TexCoords = { 0.0f, 1.0f };
-		s_Data.QuadBufferPtr->TexIndex = textureIndex;
-		s_Data.QuadBufferPtr++;
+		UpdateQuadBuffer({ position.x, position.y, 0.0f }, color, { 0.0f, 0.0f }, textureIndex);
+		UpdateQuadBuffer({ position.x + size.x, position.y, 0.0f }, color, { 1.0f, 0.0f }, textureIndex);
+		UpdateQuadBuffer({ position.x + size.x, position.y + size.y, 0.0f }, color, { 1.0f, 1.0f }, textureIndex);
+		UpdateQuadBuffer({ position.x, position.y + size.y, 0.0f }, color, { 0.0f, 1.0f }, textureIndex);
 
 		s_Data.IndexCount += 6;
 	}
 
 	void Renderer::DrawQuad(const glm::vec3& position, const glm::vec2& size, const glm::vec4& color)
 	{
-		if (s_Data.IndexCount >= MaxIndexCount) {
-			EndBatch();
-			Flush();
-			BeginBatch();
-		}
+		IfFullFlushBatch();
 
 		float textureIndex = 0.0f;
 
-		s_Data.QuadBufferPtr->Position = { position.x, position.y, position.z };
-		s_Data.QuadBufferPtr->Color = color;
-		s_Data.QuadBufferPtr->TexCoords = { 0.0f, 0.0f };
-		s_Data.QuadBufferPtr->TexIndex = textureIndex;
-		s_Data.QuadBufferPtr++;
-
-		s_Data.QuadBufferPtr->Position = { position.x + size.x, position.y, position.z };
-		s_Data.QuadBufferPtr->Color = color;
-		s_Data.QuadBufferPtr->TexCoords = { 1.0f, 0.0f };
-		s_Data.QuadBufferPtr->TexIndex = textureIndex;
-		s_Data.QuadBufferPtr++;
-
-		s_Data.QuadBufferPtr->Position = { position.x + size.x, position.y + size.y, position.z };
-		s_Data.QuadBufferPtr->Color = color;
-		s_Data.QuadBufferPtr->TexCoords = { 1.0f, 1.0f };
-		s_Data.QuadBufferPtr->TexIndex = textureIndex;
-		s_Data.QuadBufferPtr++;
-
-		s_Data.QuadBufferPtr->Position = { position.x, position.y + size.y, position.z };
-		s_Data.QuadBufferPtr->Color = color;
-		s_Data.QuadBufferPtr->TexCoords = { 0.0f, 1.0f };
-		s_Data.QuadBufferPtr->TexIndex = textureIndex;
-		s_Data.QuadBufferPtr++;
+		UpdateQuadBuffer({ position.x, position.y, position.z }, color, { 0.0f, 0.0f }, textureIndex);
+		UpdateQuadBuffer({ position.x + size.x, position.y, position.z }, color, { 1.0f, 0.0f }, textureIndex);
+		UpdateQuadBuffer({ position.x + size.x, position.y + size.y, position.z }, color, { 1.0f, 1.0f }, textureIndex);
+		UpdateQuadBuffer({ position.x, position.y + size.y, position.z }, color, { 0.0f, 1.0f }, textureIndex);
 
 		s_Data.IndexCount += 6;
 	}
 
 	void Renderer::DrawQuad(const glm::vec2& position, const glm::vec2& size, float rotation, const glm::vec4& color)
 	{
+		IfFullFlushBatch();
 
+		float textureIndex = 0.0f;
+		glm::mat4 transform = glm::rotate(glm::mat4(1.0f), rotation, { 0.0f, 0.0f, 1.0f });
+
+		UpdateQuadBuffer({ position.x, position.y, 0.0f }, color, { 0.0f, 0.0f }, textureIndex, transform);
+		UpdateQuadBuffer({ position.x + size.x, position.y, 0.0f }, color, { 1.0f, 0.0f }, textureIndex, transform);
+		UpdateQuadBuffer({ position.x + size.x, position.y + size.y, 0.0f }, color, { 1.0f, 1.0f }, textureIndex, transform);
+		UpdateQuadBuffer({ position.x, position.y + size.y, 0.0f }, color, { 0.0f, 1.0f }, textureIndex, transform);
+
+		s_Data.IndexCount += 6;
 	}
 
 	void Renderer::DrawQuad(const glm::vec3& position, const glm::vec2& size, float rotation, const glm::vec4& color)
 	{
+		IfFullFlushBatch();
+
+		float textureIndex = 0.0f;
+		glm::mat4 transform = glm::rotate(glm::mat4(1.0f), rotation, { 0.0f, 0.0f, 1.0f });
+
+		UpdateQuadBuffer({ position.x, position.y, position.z }, color, { 0.0f, 0.0f }, textureIndex, transform);
+		UpdateQuadBuffer({ position.x + size.x, position.y, position.z }, color, { 1.0f, 0.0f }, textureIndex, transform);
+		UpdateQuadBuffer({ position.x + size.x, position.y + size.y, position.z }, color, { 1.0f, 1.0f }, textureIndex, transform);
+		UpdateQuadBuffer({ position.x, position.y + size.y, position.z }, color, { 0.0f, 1.0f }, textureIndex, transform);
+
+		s_Data.IndexCount += 6;
 	}
 
-	void Renderer::DrawQuad(const glm::vec2& position, const glm::vec2& size, uint32_t textureID)
+	float Renderer::TexIDtoTexIndex(uint32_t textureID)
 	{
-		if (s_Data.IndexCount >= MaxIndexCount || s_Data.TextureSlotIndex > 31) {
-			EndBatch();
-			Flush();
-			BeginBatch();
-		}
-
-		constexpr glm::vec4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
-
 		float textureIndex = 0.0f;
 		for (uint32_t i = 0; i < s_Data.TextureSlotIndex; i++)
 		{
@@ -256,82 +265,73 @@ namespace GLCore::RendererAPI {
 			s_Data.TextureSlotIndex++;
 		}
 
-		s_Data.QuadBufferPtr->Position = { position.x, position.y, 0.0f };
-		s_Data.QuadBufferPtr->Color = color;
-		s_Data.QuadBufferPtr->TexCoords = { 0.0f, 0.0f };
-		s_Data.QuadBufferPtr->TexIndex = textureIndex;
-		s_Data.QuadBufferPtr++;
+		return textureIndex;
+	}
 
-		s_Data.QuadBufferPtr->Position = { position.x + size.x, position.y, 0.0f };
-		s_Data.QuadBufferPtr->Color = color;
-		s_Data.QuadBufferPtr->TexCoords = { 1.0f, 0.0f };
-		s_Data.QuadBufferPtr->TexIndex = textureIndex;
-		s_Data.QuadBufferPtr++;
+	void Renderer::DrawQuad(const glm::vec2& position, const glm::vec2& size, uint32_t textureID)
+	{
+		IfFullFlushBatch();
 
-		s_Data.QuadBufferPtr->Position = { position.x + size.x, position.y + size.y, 0.0f };
-		s_Data.QuadBufferPtr->Color = color;
-		s_Data.QuadBufferPtr->TexCoords = { 1.0f, 1.0f };
-		s_Data.QuadBufferPtr->TexIndex = textureIndex;
-		s_Data.QuadBufferPtr++;
+		constexpr glm::vec4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
 
-		s_Data.QuadBufferPtr->Position = { position.x, position.y + size.y, 0.0f };
-		s_Data.QuadBufferPtr->Color = color;
-		s_Data.QuadBufferPtr->TexCoords = { 0.0f, 1.0f };
-		s_Data.QuadBufferPtr->TexIndex = textureIndex;
-		s_Data.QuadBufferPtr++;
+		float textureIndex = TexIDtoTexIndex(textureID);
+
+		UpdateQuadBuffer({ position.x, position.y, 0.0f }, color, { 0.0f, 0.0f }, textureIndex);
+		UpdateQuadBuffer({ position.x + size.x, position.y, 0.0f }, color, { 1.0f, 0.0f }, textureIndex);
+		UpdateQuadBuffer({ position.x + size.x, position.y + size.y, 0.0f }, color, { 1.0f, 1.0f }, textureIndex);
+		UpdateQuadBuffer({ position.x, position.y + size.y, 0.0f }, color, { 0.0f, 1.0f }, textureIndex);
 
 		s_Data.IndexCount += 6;
 	}
 
 	void Renderer::DrawQuad(const glm::vec3& position, const glm::vec2& size, uint32_t textureID)
 	{
-		if (s_Data.IndexCount >= MaxIndexCount || s_Data.TextureSlotIndex > 31) {
-			EndBatch();
-			Flush();
-			BeginBatch();
-		}
+		IfFullFlushBatch();
 
 		constexpr glm::vec4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
 
-		float textureIndex = 0.0f;
-		for (uint32_t i = 0; i < s_Data.TextureSlotIndex; i++)
-		{
-			if (s_Data.TextureSlots[i] == textureID)
-			{
-				textureIndex = (float)i;
-				break;
-			}
-		}
+		float textureIndex = TexIDtoTexIndex(textureID);
 
-		if (textureIndex == 0.0f) {
-			textureIndex = (float)s_Data.TextureSlotIndex;
-			s_Data.TextureSlots[s_Data.TextureSlotIndex] = textureID;
-			s_Data.TextureSlotIndex++;
-		}
+		UpdateQuadBuffer({ position.x, position.y, position.z }, color, { 0.0f, 0.0f }, textureIndex);
+		UpdateQuadBuffer({ position.x + size.x, position.y, position.z }, color, { 1.0f, 0.0f }, textureIndex);
+		UpdateQuadBuffer({ position.x + size.x, position.y + size.y, position.z }, color, { 1.0f, 1.0f }, textureIndex);
+		UpdateQuadBuffer({ position.x, position.y + size.y, position.z }, color, { 0.0f, 1.0f }, textureIndex);
 
-		s_Data.QuadBufferPtr->Position = { position.x, position.y, position.z };
-		s_Data.QuadBufferPtr->Color = color;
-		s_Data.QuadBufferPtr->TexCoords = { 0.0f, 0.0f };
-		s_Data.QuadBufferPtr->TexIndex = textureIndex;
-		s_Data.QuadBufferPtr++;
+		s_Data.IndexCount += 6;
+	}
 
-		s_Data.QuadBufferPtr->Position = { position.x + size.x, position.y, position.z };
-		s_Data.QuadBufferPtr->Color = color;
-		s_Data.QuadBufferPtr->TexCoords = { 1.0f, 0.0f };
-		s_Data.QuadBufferPtr->TexIndex = textureIndex;
-		s_Data.QuadBufferPtr++;
+	void Renderer::DrawQuad(const glm::vec2& position, const glm::vec2& size, float rotation, uint32_t textureID)
+	{
+		IfFullFlushBatch();
 
-		s_Data.QuadBufferPtr->Position = { position.x + size.x, position.y + size.y, position.z };
-		s_Data.QuadBufferPtr->Color = color;
-		s_Data.QuadBufferPtr->TexCoords = { 1.0f, 1.0f };
-		s_Data.QuadBufferPtr->TexIndex = textureIndex;
-		s_Data.QuadBufferPtr++;
+		constexpr glm::vec4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
 
-		s_Data.QuadBufferPtr->Position = { position.x, position.y + size.y, position.z };
-		s_Data.QuadBufferPtr->Color = color;
-		s_Data.QuadBufferPtr->TexCoords = { 0.0f, 1.0f };
-		s_Data.QuadBufferPtr->TexIndex = textureIndex;
-		s_Data.QuadBufferPtr++;
+		float textureIndex = TexIDtoTexIndex(textureID);
+		
+		glm::mat4 transform = glm::rotate(glm::mat4(1.0f), rotation, { 0.0f, 0.0f, 1.0f });
+
+		UpdateQuadBuffer({ position.x, position.y, 0.0f }, color, { 0.0f, 0.0f }, textureIndex, transform);
+		UpdateQuadBuffer({ position.x + size.x, position.y, 0.0f }, color, { 1.0f, 0.0f }, textureIndex, transform);
+		UpdateQuadBuffer({ position.x + size.x, position.y + size.y, 0.0f }, color, { 1.0f, 1.0f }, textureIndex, transform);
+		UpdateQuadBuffer({ position.x, position.y + size.y, 0.0f }, color, { 0.0f, 1.0f }, textureIndex, transform);
+
+		s_Data.IndexCount += 6;
+	}
+
+	void Renderer::DrawQuad(const glm::vec3& position, const glm::vec2& size, float rotation, uint32_t textureID)
+	{
+		IfFullFlushBatch();
+
+		constexpr glm::vec4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
+
+		float textureIndex = TexIDtoTexIndex(textureID);
+
+		glm::mat4 transform = glm::rotate(glm::mat4(1.0f), rotation, { 0.0f, 0.0f, 1.0f });
+
+		UpdateQuadBuffer({ position.x, position.y, position.z }, color, { 0.0f, 0.0f }, textureIndex, transform);
+		UpdateQuadBuffer({ position.x + size.x, position.y, position.z }, color, { 1.0f, 0.0f }, textureIndex, transform);
+		UpdateQuadBuffer({ position.x + size.x, position.y + size.y, position.z }, color, { 1.0f, 1.0f }, textureIndex, transform);
+		UpdateQuadBuffer({ position.x, position.y + size.y, position.z }, color, { 0.0f, 1.0f }, textureIndex, transform);
 
 		s_Data.IndexCount += 6;
 	}

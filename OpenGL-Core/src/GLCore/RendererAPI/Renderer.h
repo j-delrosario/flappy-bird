@@ -27,11 +27,18 @@ namespace GLCore::RendererAPI {
 		static void DrawQuad(const glm::vec3& position, const glm::vec2& size, float rotation, const glm::vec4& color);
 		static void DrawQuad(const glm::vec2& position, const glm::vec2& size, uint32_t textureID);
 		static void DrawQuad(const glm::vec3& position, const glm::vec2& size, uint32_t textureID);
+		static void DrawQuad(const glm::vec2& position, const glm::vec2& size, float rotation, uint32_t textureID);
+		static void DrawQuad(const glm::vec3& position, const glm::vec2& size, float rotation, uint32_t textureID);
 
 		static void SetClearColor(const glm::vec4& color);
 		static void Clear();
 		static void EnableBlend();
 
 		static void SetUniformMat4(uint32_t shader, const char* name, const glm::mat4& matrix);
+	private:
+		static void IfFullFlushBatch();
+		static void UpdateQuadBuffer(const glm::vec3& position, const glm::vec4& color, const glm::vec2& texCoords, float textureIndex);
+		static void UpdateQuadBuffer(const glm::vec3& position, const glm::vec4& color, const glm::vec2& texCoords, float textureIndex, const glm::mat4& transform);
+		static float TexIDtoTexIndex(uint32_t textureID);
 	};
 }

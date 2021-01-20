@@ -37,4 +37,9 @@ private:
 	float m_Time = 0.0f;
 	float m_CamWidth = CAM_WIDTH;
 	float m_CamHeight = CAM_HEIGHT;
+
+	ImFont* m_Font;
+
+	std::unique_ptr<Texture> m_RestartTexture;
+	std::unique_ptr<Texture> m_ScoreTexture;
 };

@@ -25,6 +25,8 @@ public:
 
 	const glm::vec2& GetPosition() const { return m_Position; }
 	const glm::vec2& GetSize() const { return m_Size;  }
+	uint32_t GetScore(); 
+	uint32_t GetHighScore() const { return m_HighScore; }
 private:
 	float m_Time = 0.0f;
 	float m_Gravity = 1.2f;
@@ -36,4 +38,5 @@ private:
 	std::shared_ptr<Texture> m_NeutralFlapTexture;
 	std::shared_ptr<Texture> m_DownFlapTexture;
 	std::shared_ptr<Texture> m_UpFlapTexture;
+	uint32_t m_HighScore = 0;
 };
