@@ -18,5 +18,5 @@ void main()
 	v_Color = a_Color;
 	v_TexCoord = a_TexCoord;
 	v_TexIndex = a_TexIndex;
-	gl_Position = u_ViewProjection * u_Transform * a_Transform * vec4(a_Position, 1.0f);
+	gl_Position = u_ViewProjection * a_Transform * vec4(a_Position, 1.0f);
 }

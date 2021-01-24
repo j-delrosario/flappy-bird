@@ -31,6 +31,7 @@ private:
 	float m_Time = 0.0f;
 	float m_Gravity = 1.2f;
 	float m_Lift = 20.0f;
+	float m_Rotation = 0.0f;
 	glm::vec2 m_Velocity = { 5.0f, 0.0f };
 	glm::vec2 m_Position = { 0.0f, 0.0f };
 	glm::vec2 m_Size = { 1.7f, 1.3f };

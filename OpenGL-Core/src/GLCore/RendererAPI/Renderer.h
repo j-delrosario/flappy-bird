@@ -40,5 +40,7 @@ namespace GLCore::RendererAPI {
 		static void UpdateQuadBuffer(const glm::vec3& position, const glm::vec4& color, const glm::vec2& texCoords, float textureIndex);
 		static void UpdateQuadBuffer(const glm::vec3& position, const glm::vec4& color, const glm::vec2& texCoords, float textureIndex, const glm::mat4& transform);
 		static float TexIDtoTexIndex(uint32_t textureID);
+		static const glm::vec4& Center(const glm::vec2& position, const glm::vec2& size);
+		static const glm::vec2& Rotate(const glm::vec2& point, float rotation);
 	};
 }

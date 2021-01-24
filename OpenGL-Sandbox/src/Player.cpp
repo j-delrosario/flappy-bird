@@ -34,6 +34,11 @@ void Player::OnUpdate(Timestep ts)
 	if (m_Velocity.y > -m_Lift)
 		m_Velocity.y -= m_Gravity;
 
+	if (m_Velocity.y > 5.0f)
+		m_Rotation = -0.3f;
+	else if (m_Rotation < glm::pi<float>() / 2)
+		m_Rotation += 0.035f;
+
 	m_Position += m_Velocity * (float)ts;
 }
 
@@ -44,13 +49,14 @@ void Player::OnEvent(Event& e)
 
 void Player::OnRender()
 {
-	Renderer::DrawQuad({ m_Position.x, m_Position.y, 0.3f }, m_Size, (uint32_t)m_Texture->m_TextureID);
+	Renderer::DrawQuad({ m_Position.x, m_Position.y}, m_Size, m_Rotation, (uint32_t)m_Texture->m_TextureID);
 }
 
 void Player::Reset()
 {
 	m_Position = { 0.0f, 0.0f };
 	m_Velocity = { 5.0f, 0.0f };
+	m_Rotation = 0.0f;
 }
 
 void Player::Kill()

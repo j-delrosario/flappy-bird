@@ -25,7 +25,7 @@ void Level::OnUpdate(Timestep ts)
 
 	if (m_GameOver)
 	{
-		if (m_Player.GetPosition().y > -CAM_HEIGHT + 2 * FLOOR_HEIGHT)
+		if (m_Player.GetPosition().y > -CAM_HEIGHT + 2 * FLOOR_HEIGHT + m_Player.GetSize().y / 2)
 		{
 			m_Player.OnUpdate(ts);
 		}
@@ -60,8 +60,8 @@ void Level::OnRender()
 	const auto& playerPos = m_Player.GetPosition();
 
 	Renderer::DrawQuad({ -CAM_WIDTH + PLAYER_OFFSET + playerPos.x, -CAM_HEIGHT },    { 2 * CAM_WIDTH, 2 * CAM_HEIGHT   }, (uint32_t)m_BackgroundTexture->m_TextureID);
-	Renderer::DrawQuad({ PLAYER_OFFSET + m_FloorX1 * CAM_WIDTH, -CAM_HEIGHT, 0.2f }, { 2 * CAM_WIDTH, 2 * FLOOR_HEIGHT }, (uint32_t)m_FloorTexture->m_TextureID);
-	Renderer::DrawQuad({ PLAYER_OFFSET + m_FloorX2 * CAM_WIDTH, -CAM_HEIGHT, 0.2f }, { 2 * CAM_WIDTH, 2 * FLOOR_HEIGHT }, (uint32_t)m_FloorTexture->m_TextureID);
+	Renderer::DrawQuad({ PLAYER_OFFSET + m_FloorX1 * CAM_WIDTH, -CAM_HEIGHT, 1.0f }, { 2 * CAM_WIDTH, 2 * FLOOR_HEIGHT }, (uint32_t)m_FloorTexture->m_TextureID);
+	Renderer::DrawQuad({ PLAYER_OFFSET + m_FloorX2 * CAM_WIDTH, -CAM_HEIGHT, 1.0f }, { 2 * CAM_WIDTH, 2 * FLOOR_HEIGHT }, (uint32_t)m_FloorTexture->m_TextureID);
 
 	for (auto& pillar : m_Pillars)
 	{
@@ -109,14 +109,14 @@ void Level::CreatePillar(int index, float offset)
 
 bool Level::CollisionTest()
 {
-	if (m_Player.GetPosition().y < -CAM_HEIGHT + 2 * FLOOR_HEIGHT)
+	if (m_Player.GetPosition().y - m_Player.GetSize().y / 2 < -CAM_HEIGHT + 2 * FLOOR_HEIGHT)
 		return true;
 
-	if (m_Player.GetPosition().y > CAM_HEIGHT && m_Player.GetPosition().x > m_Pillars[0].TopPosition.x)
+	if (m_Player.GetPosition().y + m_Player.GetSize().y / 2 > CAM_HEIGHT && m_Player.GetPosition().x > m_Pillars[0].TopPosition.x)
 		return true;
 
-	glm::vec2 pos = { m_Player.GetPosition().x + 0.1f, m_Player.GetPosition().y + 0.1f };
-	glm::vec2 size = { m_Player.GetSize().x - 0.2f, m_Player.GetSize().y - 0.2f };
+	glm::vec2 pos = { m_Player.GetPosition().x - m_Player.GetSize().x / 2, m_Player.GetPosition().y - m_Player.GetSize().y / 2 };
+	glm::vec2 size = { m_Player.GetSize().x, m_Player.GetSize().y };
 
 
 	for (auto& pillar : m_Pillars)
