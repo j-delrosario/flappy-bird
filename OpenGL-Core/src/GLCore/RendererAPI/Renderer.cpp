@@ -381,13 +381,13 @@ namespace GLCore::RendererAPI {
 	}
 
 
-	const glm::vec4& Renderer::Center(const glm::vec2& position, const glm::vec2& size)
+	glm::vec4 Renderer::Center(const glm::vec2& position, const glm::vec2& size)
 	{
 		return { position.x - size.x / 2, position.y - size.y / 2,
 				 position.x + size.x / 2, position.y + size.y / 2 };
 	}
 
-	const glm::vec2& Renderer::Rotate(const glm::vec2& point, float rotation)
+	glm::vec2 Renderer::Rotate(const glm::vec2& point, float rotation)
 	{
 		float cos = glm::cos(-rotation);
 		float sin = glm::sin(-rotation);
